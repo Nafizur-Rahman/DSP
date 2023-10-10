@@ -1,0 +1,201 @@
+------------IDFT OF A SEQUENCE------------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Input X(K)
+Xk = np.array(input('Enter X(K) (comma-separated): ').split(','), dtype=complex)
+N = len(Xk)
+
+xn = np.zeros(N, dtype=complex)
+k = np.arange(0, N)
+for n in range(N):
+    xn[n] = np.sum(np.exp(1j * 2 * np.pi * k * n / N) * Xk)
+
+xn = xn / N
+
+print('x(n):')
+print(xn)
+
+plt.figure()
+plt.plot(np.real(xn))
+plt.grid(True)
+plt.stem(k, np.real(xn))
+plt.xlabel('n')
+plt.ylabel('Magnitude')
+plt.title('IDFT OF A SEQUENCE')
+
+plt.tight_layout()
+plt.show()
+
+
+-------DFT OF A SEQUENCE----------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Input the length of the sequence and the sequence itself
+N = int(input('Enter the length of sequence: '))
+x = np.array(input('Enter the sequence (comma-separated): ').split(','), dtype=float)
+
+# Create arrays for n and k
+n = np.arange(0, N)
+k = np.arange(0, N)
+
+# Calculate wN
+wN = np.exp(-1j * 2 * np.pi / N)
+
+# Create the nk matrix
+nk = np.outer(n, k)
+        
+# Calculate wNnk
+wNnk = wN ** nk
+
+# Calculate Xk
+Xk = np.dot(x, wNnk)
+
+print('Xk:')
+print(Xk)
+
+# Calculate magnitude and phase
+mag = np.abs(Xk)
+phase = np.angle(Xk)
+
+# Plot magnitude
+plt.subplot(2, 1, 1)
+plt.stem(k, mag)
+plt.grid(True)
+plt.xlabel('k')
+plt.title('MAGNITUDE OF FOURIER TRANSFORM')
+plt.ylabel('Magnitude')
+
+# Plot phase
+plt.subplot(2, 1, 2)
+plt.stem(k, phase)
+plt.grid(True)
+plt.xlabel('k')
+plt.title('PHASE OF FOURIER TRANSFORM')
+plt.ylabel('Phase')
+
+plt.tight_layout()
+plt.show()
+
+
+----------DFT from Equation-----------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+Fa = 10
+T = 1 / Fa
+t = np.arange(0, T, T/99)
+y = 5 * np.sin(2 * np.pi * Fa * t) + 2 * np.sin(2 * np.pi * 2 * Fa * t) + 2 * np.sin(2 * np.pi * 3 * Fa * t)
+plt.figure(1)
+plt.plot(t, y)
+
+Fs = 640
+Ts = 1 / Fs
+N = int(T / Ts)
+n = np.arange(0, N)
+yy = 5 * np.sin(2 * np.pi * Fa * n * Ts) + 2 * np.sin(2 * np.pi * 2 * Fa * n * Ts) + 2 * np.sin(2 * np.pi * 3 * Fa * n * Ts)
+plt.figure(2)
+plt.stem(n, yy)
+
+h = []
+b = []
+for k in range(1, N+1):
+    for n in range(1, N+1):
+        ff = yy[n-1] * np.exp(-1j * 2 * np.pi * (k-1 - (N/2)) * (n-1 - (N/2)) / N)
+        h.append(ff)
+    p = sum(h)
+    b.append(p)
+    h = []
+
+plt.figure(4)
+f = Fs * np.arange(-N/2, N/2) / N
+plt.stem(f, np.abs(b))
+plt.axis([-30, 30, 0, 160])
+
+plt.show()
+
+
+
+-------------Sampling,Quantization,Coding-------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+A = float(input("Amplitude of Transmitting signal: "))
+
+# Transmitting Signal Generation
+f = 100
+T = 1 / f
+t = np.arange(0, 2 * T, T / 100)
+y = A * np.sin(2 * np.pi * f * t)
+
+plt.figure(1)
+plt.plot(t, y, linewidth=3)
+plt.ylabel('Amplitude (volt)')
+plt.xlabel('time (Sec)')
+plt.title('Transmitting Signal')
+
+# Sampling
+Ts = T / 20
+Fs = 1 / Ts
+n = np.arange(1, int(2 * T / Ts) + 1)
+y1 = A * np.sin(2 * np.pi * f * n * Ts)
+
+plt.figure(2)
+plt.stem(n, y1)
+plt.ylabel('Amplitude (volt)')
+plt.xlabel('discrete time')
+plt.title('Discrete Time Signal After Sampling')
+
+# Additional of DC Level
+y2 = A + y1
+
+plt.figure(3)
+plt.stem(n, y2)
+plt.ylabel('Amplitude (volt)')
+plt.xlabel('discrete time')
+plt.title('DC Level + Discrete Time Signal')
+
+# Quantization Signal
+y3 = np.round(y2)
+
+plt.figure(4)
+plt.stem(n, y3)
+plt.ylabel('Amplitude (volt)')
+plt.xlabel('discrete time')
+plt.title('Quantized Signal')
+
+# Binary Information Generation
+y4 = np.array([bin(int(val))[2:].zfill(8) for val in y3])
+Bi = y4.tolist()
+
+plt.show()
+
+
+-------------Fourier Transform---------
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+N = 250
+ts = 0.0002
+t = np.arange(0, N) * ts
+x = np.cos(2 * np.pi * 100 * t) + np.cos(2 * np.pi * 500 * t) + np.cos(2 * np.pi * 800 * t)
+
+plt.subplot(2, 1, 1)
+plt.plot(t, x)
+
+X = []
+for f in range(801):  # Iterate from 0 to 800
+    X.append(np.trapz(x * np.exp(-1j * 2 * np.pi * f * t), t))
+
+frequencies = np.arange(801)
+plt.subplot(2, 1, 2)
+plt.plot(frequencies, np.abs(X))
+
+plt.show()
